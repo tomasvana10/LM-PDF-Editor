@@ -1,24 +1,21 @@
 from typing import final, override
+from pathlib import Path
 
 import fitz
 
 from .helper import Helper
+from ..data import read_data
 
 
 @final
 class PDFHelper(Helper[bytes, fitz.Document]):
-    _styles = """
-body { line-height: 1.4; margin:0; padding:0; font-family: Arial, sans-serif; }
-p { margin:0; }
-.sup { vertical-align: super; font-size: smaller; }
-.sub { vertical-align: sub; font-size: smaller; }
-"""
+    _styles = read_data("pdfstyles.css")
 
     @override
     def write(self, data: bytes, dest: str) -> None:
         if not dest.endswith(".pdf"):
             raise ValueError("Destination file must end with '.pdf'")
-        with open(dest, "xb") as f:
+        with open(dest, "wb") as f:
             f.write(data)
 
     @override
@@ -26,14 +23,14 @@ p { margin:0; }
         return fitz.open(src)
 
     def to_html(self, data: fitz.Document) -> str:
-# pyright: reportUnknownVariableType=false
-# pyright: reportUnknownMemberType=false
+        # pyright: reportUnknownVariableType=false
+        # pyright: reportUnknownMemberType=false
         html = [
             "<html><head><style>" + self.__class__._styles + "</style></head><body>",
         ]
 
         for page in data:
-            blocks = page.get_text("dict")["blocks"] # pyright: ignore[reportAttributeAccessIssue]
+            blocks = page.get_text("dict")["blocks"]  # pyright: ignore[reportAttributeAccessIssue]
             for block in blocks:
                 if block["type"] == 0:  # text block
                     for line in block["lines"]:

@@ -16,7 +16,7 @@ class HTMLHelper(Helper[str, str]):
     def write(self, data: str, dest: str) -> None:
         if not dest.endswith(".html"):
             raise ValueError("Destination file must end with '.html'")
-        with open(dest, "x", encoding="utf-8") as f:
+        with open(dest, "w", encoding="utf-8") as f:
             f.write(data)
 
     @override
@@ -26,7 +26,7 @@ class HTMLHelper(Helper[str, str]):
 
     def to_pdf(self, data: str) -> bytes:
         cmd: list[str] = [
-            wkhtmltopdf, # pyright: ignore[reportAssignmentType]
+            wkhtmltopdf,  # pyright: ignore[reportAssignmentType]
             "--enable-local-file-access",
             "--disable-smart-shrinking",
             "--encoding",
