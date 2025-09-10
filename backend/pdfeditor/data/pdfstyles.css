@@ -3,10 +3,13 @@ body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
+  font-size: 12pt;
+  color: "#000000"
 }
 p {
   margin: 0;
-}
+  margin-top: 5px;
+  }
 .sup {
   vertical-align: super;
   font-size: smaller;

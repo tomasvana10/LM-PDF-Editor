@@ -3,6 +3,7 @@ import requests
 from urllib import parse
 
 from ..data import read_data
+from ..settings import get_settings
 
 
 @final
@@ -13,9 +14,10 @@ class LMClient:
     port: int
     url: str
 
-    def __init__(self, *, host: str = "localhost", port: int = 1234):
-        self.host = host
-        self.port = port
+    def __init__(self):
+        settings = get_settings()
+        self.host = settings["lms_host"]
+        self.port = settings["lms_port"]
 
         self.url = f"http://{self.host}:{self.port}/api/v0/"
 
@@ -24,7 +26,8 @@ class LMClient:
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.8,
-            "max_tokens": 1000000,
+            "max_tokens": -1,
+            "stream": False,
         }
 
         resp = requests.post(
@@ -35,15 +38,12 @@ class LMClient:
 
         return data["choices"][0]["message"]["content"]
 
-    def ask_plain(self, prompt: str, model: str) -> str:
-        return self._ask(prompt, model)
-
-    def ask_full(self, user_context: str, original_html: str, model: str) -> str:
+    def process_html(self, user_context: str, original_html: str, model: str) -> str:
         prompt = (
             self.__class__._pre_prompt
             + "\n\n"
-            + f"User context:\n{user_context}\n\n"
-            + f"Original HTML:\n{original_html}"
+            + f"User instruction:\n{user_context}\n\n"
+            + f"Original HTML you must edit (if there is none, you are not editing, but creating):\n{original_html}"
         )
 
         return self._ask(prompt, model)
