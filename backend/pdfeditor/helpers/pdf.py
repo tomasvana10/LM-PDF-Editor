@@ -1,5 +1,4 @@
 from typing import final, override
-from pathlib import Path
 
 import fitz
 
