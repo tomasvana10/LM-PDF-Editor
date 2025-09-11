@@ -1,10 +1,11 @@
-from typing import Annotated
-from fastapi import FastAPI, Form, Response, UploadFile
-from fastapi.responses import StreamingResponse
-from fastapi.middleware.cors import CORSMiddleware
 from io import BytesIO
+from typing import Annotated
 
-from ..helpers import PDFHelper, HTMLHelper
+from fastapi import FastAPI, Form, Response, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+
+from ..helpers import HTMLHelper, PDFHelper
 from ..lm import LMClient
 
 app = FastAPI()

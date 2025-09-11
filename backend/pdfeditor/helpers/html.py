@@ -1,9 +1,8 @@
-from typing import final, override
-import subprocess
 import shutil
+import subprocess
+from typing import final, override
 
 from .fs_base import FSBase
-
 
 wkhtmltopdf = shutil.which("wkhtmltopdf")
 if wkhtmltopdf is None:

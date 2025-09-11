@@ -18,9 +18,9 @@ def fastapi_run(op: Literal["run"] | Literal["dev"]):
             op,
             this_dir / "server",
             "--host",
-            settings["api_host"],
+            settings["API_HOST"],
             "--port",
-            str(settings["api_port"]),
+            str(settings["API_PORT"]),
         ]
     )
 

@@ -5,8 +5,8 @@ from typing import final, override
 
 import fitz
 
-from .fs_base import FSBase
 from ..data import read_data
+from .fs_base import FSBase
 
 
 @final

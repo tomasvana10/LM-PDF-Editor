@@ -1,6 +1,7 @@
 from typing import cast, final
-import requests
 from urllib import parse
+
+import requests
 
 from ..data import read_data
 from ..settings import get_settings
@@ -16,8 +17,8 @@ class LMClient:
 
     def __init__(self):
         settings = get_settings()
-        self.host = settings["lms_host"]
-        self.port = settings["lms_port"]
+        self.host = settings["LMS_HOST"]
+        self.port = settings["LMS_PORT"]
 
         self.url = f"http://{self.host}:{self.port}/api/v0/"
 

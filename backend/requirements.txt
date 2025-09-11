@@ -2,3 +2,4 @@ pymupdf
 fastapi
 requests
 typer
+python-dotenv
