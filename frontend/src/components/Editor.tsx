@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
 import { getAPIURL } from "../util/settings";
-import { Asterisk, RefreshCcw } from "lucide-react";
+import { Asterisk, CircleX, RefreshCcw } from "lucide-react";
 
 //@ts-expect-error works fine, disabling the option in tsconfig didn't work for some reason
 enum FileFormat {
@@ -19,17 +19,27 @@ interface IFormInput {
 
 export default function Editor() {
   const [models, setModels] = useState<string[]>([]);
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<IFormInput>({
-    defaultValues: { fileFormat: FileFormat.pdf, model: "" },
+  const rf = useForm<IFormInput>({
+    defaultValues: { fileFormat: FileFormat.pdf },
   });
 
-  const onSubmit: SubmitHandler<IFormInput> = data => {
-    alert(JSON.stringify(data));
+  const existingFile = rf.watch("existingFile");
+  const fileFormat = rf.watch("fileFormat");
+
+  const onSubmit: SubmitHandler<IFormInput> = async data => {
+    const f = new FormData();
+    f.append("user_context", data.userContext);
+    f.append("model", data.model);
+    if (data.existingFile?.[0]) {
+      f.append("existing_file", data.existingFile[0]);
+    }
+
+    const res = await fetch(getAPIURL() + `/${data.fileFormat}`, {
+      method: "POST",
+      body: f,
+    });
+
+    window.open(URL.createObjectURL(await res.blob()), "_blank");
   };
 
   const fetchModels = useCallback(async () => {
@@ -42,17 +52,23 @@ export default function Editor() {
     const ids = models.map((model: Record<string, string>) => model.id);
     setModels(ids);
 
-    if (ids.length && !ids.includes(errors.model?.message)) {
-      setValue("model", ids[0]);
+    if (ids.length) {
+      rf.setValue("model", ids[0]);
     }
-  }, [setValue, errors.model]);
+  }, [rf]);
 
+  // fetch all modeels once on load
   useEffect(() => {
     fetchModels();
   }, [fetchModels]);
 
+  // whenever fileFormat changes, trigger existing file to update the error message (if it exists)
+  useEffect(() => {
+    rf.trigger("existingFile");
+  }, [rf, fileFormat]);
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={rf.handleSubmit(onSubmit)}>
       <fieldset className="fieldset">
         <FieldHeader name="File format" required />
         <div className="flex flex-row gap-4">
@@ -61,7 +77,7 @@ export default function Editor() {
               <input
                 type="radio"
                 value={format}
-                {...register("fileFormat", {
+                {...rf.register("fileFormat", {
                   required: "You must select a file format",
                 })}
                 className="radio"
@@ -70,7 +86,7 @@ export default function Editor() {
             </label>
           ))}
         </div>
-        <FormErrorMessage message={errors.fileFormat?.message} />
+        <FormErrorMessage message={rf.formState.errors.fileFormat?.message} />
       </fieldset>
 
       <fieldset className="fieldset">
@@ -78,7 +94,7 @@ export default function Editor() {
         <div className="flex flex-row gap-2">
           <select
             className="select"
-            {...register("model", { required: "You must select a model" })}>
+            {...rf.register("model", { required: "You must select a model" })}>
             {models.map(model => (
               <option key={model} value={model}>
                 {model}
@@ -92,22 +108,43 @@ export default function Editor() {
             <RefreshCcw className="size-4" />
           </button>
         </div>
-        <FormErrorMessage message={errors.model?.message} />
+        <FormErrorMessage message={rf.formState.errors.model?.message} />
       </fieldset>
 
       <fieldset className="fieldset">
         <FieldHeader name="Source file" />
-        <input
-          type="file"
-          {...register("existingFile")}
-          className="file-input"
-        />
+        <div className="flex flex-row gap-2">
+          <input
+            type="file"
+            multiple={false}
+            {...rf.register("existingFile", {
+              validate: (files: FileList) => {
+                if (!files.length) return true;
+
+                const extension = files[0].name.split(".").pop()?.toLowerCase();
+                const fileFormat = rf.watch("fileFormat");
+                return (
+                  extension === fileFormat ||
+                  `Invalid file extension (should end in .${fileFormat})`
+                );
+              },
+            })}
+            className="file-input"
+          />
+          <button
+            type="button"
+            className="btn btn-circle h-full"
+            onClick={() => rf.resetField("existingFile")}>
+            <CircleX className="size-4" />
+          </button>
+        </div>
+        <FormErrorMessage message={rf.formState.errors.existingFile?.message} />
       </fieldset>
 
       <fieldset className="fieldset">
         <FieldHeader name="Instructions" required />
         <textarea
-          {...register("userContext", {
+          {...rf.register("userContext", {
             required: "You must provide instructions",
             minLength: {
               value: 10,
@@ -115,12 +152,12 @@ export default function Editor() {
             },
           })}
           className="textarea min-h-[200px] "></textarea>
-        <FormErrorMessage message={errors.userContext?.message} />
+        <FormErrorMessage message={rf.formState.errors.userContext?.message} />
       </fieldset>
 
       <div className="divider"></div>
       <button className="btn btn-success" type="submit">
-        Submit
+        {existingFile?.length ? "Edit" : "Create"}
       </button>
     </form>
   );
@@ -135,13 +172,13 @@ function FieldHeader({ name, required }: { name: string; required?: boolean }) {
   return (
     <legend className="fieldset-legend">
       <div className="flex items-center gap-1">
-        {required ? <Required /> : null}
+        {required ? <RequiredAsterisk /> : null}
         <span>{name}</span>
       </div>
     </legend>
   );
 }
 
-function Required() {
+function RequiredAsterisk() {
   return <Asterisk className="stroke-red-500 size-3" />;
 }
