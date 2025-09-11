@@ -17,7 +17,11 @@ interface IFormInput {
   model: string;
 }
 
-export default function Editor() {
+interface EditorProps {
+  onObjectCreation: (url: string, fileFormat: FileFormat) => void;
+}
+
+export default function Editor({ onObjectCreation }: EditorProps) {
   const [models, setModels] = useState<string[]>([]);
   const rf = useForm<IFormInput>({
     defaultValues: { fileFormat: FileFormat.pdf },
@@ -39,7 +43,9 @@ export default function Editor() {
       body: f,
     });
 
-    window.open(URL.createObjectURL(await res.blob()), "_blank");
+    const url = URL.createObjectURL(await res.blob());
+    onObjectCreation(url, data.fileFormat);
+    //window.open(url, "_blank");
   };
 
   const fetchModels = useCallback(async () => {
