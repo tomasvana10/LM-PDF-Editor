@@ -2,7 +2,7 @@ from typing import final, override
 import subprocess
 import shutil
 
-from .helper import Helper
+from .fs_base import FSBase
 
 
 wkhtmltopdf = shutil.which("wkhtmltopdf")
@@ -11,7 +11,7 @@ if wkhtmltopdf is None:
 
 
 @final
-class HTMLHelper(Helper[str, str]):
+class HTMLHelper(FSBase[str, str]):
     @override
     def write(self, data: str, dest: str) -> None:
         if not dest.endswith(".html"):

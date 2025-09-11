@@ -5,7 +5,7 @@ Raw = TypeVar("Raw")
 Parsed = TypeVar("Parsed")
 
 
-class Helper[Raw, Parsed](ABC):
+class FSBase[Raw, Parsed](ABC):
     @abstractmethod
     def write(self, data: Raw, dest: str): ...
 

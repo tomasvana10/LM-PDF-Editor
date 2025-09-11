@@ -1,13 +1,16 @@
+# pyright: reportUnknownVariableType=false
+# pyright: reportUnknownMemberType=false
+
 from typing import final, override
 
 import fitz
 
-from .helper import Helper
+from .fs_base import FSBase
 from ..data import read_data
 
 
 @final
-class PDFHelper(Helper[bytes, fitz.Document]):
+class PDFHelper(FSBase[bytes, fitz.Document]):
     _styles = read_data("pdfstyles.css")
 
     @override
@@ -18,12 +21,13 @@ class PDFHelper(Helper[bytes, fitz.Document]):
             f.write(data)
 
     @override
-    def read(self, src: str) -> fitz.Document:
-        return fitz.open(src)
+    def read(self, src: str | bytes) -> fitz.Document:
+        if isinstance(src, str):
+            return fitz.open(src)
+
+        return fitz.open(stream=src, filetype="pdf")
 
     def to_html(self, data: fitz.Document) -> str:
-        # pyright: reportUnknownVariableType=false
-        # pyright: reportUnknownMemberType=false
         html = [
             "<html><head><style>" + self.__class__._styles + "</style></head><body>",
         ]
